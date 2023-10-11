@@ -1,5 +1,5 @@
 import { ControllerMixin, Controller } from '@lionrockjs/mvc';
-import { Central } from 'lionrockjs';
+import { Central } from '@lionrockjs/central';
 import equal from 'fast-deep-equal';
 import Session from '../Session';
 
@@ -32,8 +32,8 @@ export default class ControllerMixinSession extends ControllerMixin {
 
   static async after(state) {
     const config = { ...Central.config.session, ...state.get(this.SESSION_OPTIONS) };
-    const client = state.get('client');
-    const { request } = client;
+    const client = state.get(Controller.STATE_CLIENT);
+    const request  = state.get(Controller.STATE_REQUEST);
     const { session } = request;
     const { cookies } = client;
     if(!session)return;

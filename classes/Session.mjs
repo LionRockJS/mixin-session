@@ -1,8 +1,7 @@
-import { Central, ORM } from 'lionrockjs';
+import { Central, ORM } from '@lionrockjs/central';
 import { randomUUID } from 'node:crypto';
 import { HelperCrypto } from '@lionrockjs/mod-crypto';
-
-const Session = await ORM.import('Session');
+import Session from '../classes/model/Session.mjs';
 
 export default class HelperSession {
   static async read(request, database, options) {
@@ -44,7 +43,6 @@ export default class HelperSession {
 
   static async write(request, cookies, database, options) {
     const config = { ...Central.config.session, ...options };
-
     const cookieConfig = config.cookie;
     const { secret } = config;
     const model = new Session(request.session.id, { database });

@@ -1,4 +1,4 @@
-import { ORM } from 'lionrockjs';
+import { ORM } from '@lionrockjs/central';
 
 export default class Session extends ORM {
   sid = null;
