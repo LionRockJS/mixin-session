@@ -1,4 +1,4 @@
-module.exports ={
+export default {
   salt:'theencryptsaltatleast32character',
   options : {
     secure: false,
