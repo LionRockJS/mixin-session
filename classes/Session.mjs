@@ -43,7 +43,8 @@ export default class HelperSession {
 
   static async write(request, cookies, database, options) {
     const config = { ...Central.config.session, ...options };
-    const cookieConfig = config.cookie;
+
+    const cookieConfig = Central.config.cookie;
     const { secret } = config;
     const model = new Session(request.session.id, { database });
 

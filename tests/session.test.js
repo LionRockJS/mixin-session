@@ -3,32 +3,30 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/
 
 import path from 'node:path';
 import fs from 'node:fs';
-import Database from 'better-sqlite3';
-import { Central, ControllerMixinDatabase } from 'lionrockjs';
+import { Central, ControllerMixinDatabase } from '@lionrockjs/central';
+import { DatabaseAdapterBetterSQLite3 } from '@lionrockjs/adapter-database-better-sqlite3';
+ControllerMixinDatabase.DEFAULT_DATABASE_ADAPTER = DatabaseAdapterBetterSQLite3;
 import { Controller } from '@lionrockjs/mvc';
 import ControllerMixinSession from '../classes/controller-mixin/Session';
-
-await Central.init({ EXE_PATH: `${__dirname}/test1` });
-Central.initConfig(new Map([['session', {}]]));
-Central.classPath.set('ControllerSession', path.normalize(`${__dirname}/../classes/ControllerSession.js`));
+import Database from "better-sqlite3";
 
 class ControllerSession extends Controller {
   static mixins = [...Controller.mixins, ControllerMixinDatabase, ControllerMixinSession];
 
   constructor(request, sessionOption) {
     super(request);
-    const pathDB = `${__dirname}/db`;
-    this.state.get(ControllerMixinDatabase.DATABASE_MAP).set('session', `${pathDB}/session.sqlite`);
-    this.state.set(ControllerMixinDatabase.DATABASE_DRIVER, DatabaseDriverBetterSQLite3);
+    this.state.get(ControllerMixinDatabase.DATABASE_MAP).set('session', `${__dirname}/db/session.sqlite`);
     this.state.set(ControllerMixinSession.SESSION_OPTIONS, sessionOption);
   }
 
   async action_setfoo() {
-    this.request.session.foo = this.request.body;
+    const request = this.state.get(Controller.STATE_REQUEST);
+    request.session.foo = request.body;
   }
 
   async action_readfoo() {
-    this.body = this.request.session.foo;
+    const request = this.state.get(Controller.STATE_REQUEST);
+    this.body = request.session.foo;
   }
 }
 
@@ -47,7 +45,13 @@ describe('Test Session', () => {
   fs.copyFileSync(`${__dirname}/defaultDB/session.sqlite`, dbPath);
 
   beforeEach(async () => {
-    await Central.flushCache();
+    await Central.init({ EXE_PATH: `${__dirname}/test1` });
+    Central.initConfig(new Map([
+      ['cookie', (await import('../config/cookie.mjs')).default],
+      ['session', (await import('../config/session.mjs')).default],
+    ]));
+    Central.classPath.set('ControllerSession', path.normalize(`${__dirname}/../classes/ControllerSession.mjs`));
+//    await Central.flushCache();
   });
 
   test('no session', async () => {
@@ -61,7 +65,7 @@ describe('Test Session', () => {
     const c = new ControllerSession({ cookies: {} }, { saveUninitialized: true });
     const result = await c.execute();
 
-    const cookie = result.cookies.find(({ name }) => name === 'kohanajs-session');
+    const cookie = result.cookies.find(({ name }) => name === 'lionrock-session');
     expect(!!cookie).toBe(true);
 
     const ssid = cookie.value;
@@ -74,16 +78,16 @@ describe('Test Session', () => {
   test('continue session', async () => {
     const c = new ControllerSession({ cookies: {} }, { saveUninitialized: true });
     const result = await c.execute();
-    const cookie = result.cookies.find(({ name }) => name === 'kohanajs-session');
+    const cookie = result.cookies.find(({ name }) => name === 'lionrock-session');
 
     const ssid = cookie.value;
     const data = String(Math.random());
 
-    const c2 = new ControllerSession({ cookies: { 'kohanajs-session': ssid }, body: data });
+    const c2 = new ControllerSession({ cookies: { 'lionrock-session': ssid }, body: data });
     const r2 = await c2.execute('setfoo');
     expect(r2.body).toBe('');
 
-    const c3 = new ControllerSession({ cookies: { 'kohanajs-session': ssid } });
+    const c3 = new ControllerSession({ cookies: { 'lionrock-session': ssid } });
     const r3 = await c3.execute('readfoo');
 
     expect(r3.body).toBe(data);
@@ -100,7 +104,8 @@ describe('Test Session', () => {
 
     const c2 = new ControllerSession({ cookies: {} });
     const result2 = await c2.execute();
-    const cookie = result2.cookies.find(({ name }) => name === 'kohanajs-session');
+    console.log(result2);
+    const cookie = result2.cookies.find(({ name }) => name === 'lionrock-session');
     expect(!!cookie).toBe(true);
   });
 
@@ -112,6 +117,8 @@ describe('Test Session', () => {
 
     const c = new ControllerSession({ cookies: {} });
     const result = await c.execute();
+    console.log(result);
+
     const cookie = result.cookies.find(({ name }) => name === 'ksession');
     expect(!!cookie).toBe(true);
   });
@@ -130,7 +137,7 @@ describe('Test Session', () => {
     expect(record.sess).toBe('{"foo":"hello"}');
     const lastUpdate = record.expired;
 
-    const c2 = new ControllerSession({ cookies: { 'kohanajs-session': ssid }, body: 'hello' });
+    const c2 = new ControllerSession({ cookies: { 'lionrock-session': ssid }, body: 'hello' });
     const r2 = await c2.execute('setfoo');
     expect(r2.cookies.length).toBe(0);
 
@@ -141,7 +148,7 @@ describe('Test Session', () => {
       resave: true,
     });
 
-    const c3 = new ControllerSession({ cookies: { 'kohanajs-session': ssid }, body: 'hello' });
+    const c3 = new ControllerSession({ cookies: { 'lionrock-session': ssid }, body: 'hello' });
     const r3 = await c3.execute();
 
     expect(r3.cookies.length).toBe(1);
@@ -154,17 +161,17 @@ describe('Test Session', () => {
     const db = new Database(`${__dirname}/db/session.sqlite`);
     db.prepare('INSERT INTO sessions (sid, sess, expired) VALUES (?,?,?)').run('c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad', '{"foo":"whatsup"}', 1597158162434);
 
-    const c1 = new ControllerSession({ cookies: { 'kohanajs-session': 'c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad.WnKoj6+mumOJJ5N3Gc5hHiVVyUtKox8znpaNC69ckUk=' } });
+    const c1 = new ControllerSession({ cookies: { 'lionrock-session': 'c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad.WnKoj6+mumOJJ5N3Gc5hHiVVyUtKox8znpaNC69ckUk=' } });
     const r1 = await c1.execute('readfoo');
-    //    console.log(r1);
+//        console.log(r1);
     expect(r1.body).toBe('whatsup');
 
-    const c2 = new ControllerSession({ cookies: { 'kohanajs-session': 'c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad.WnKoj6+mumOJJ5N3Gc5hHiVVyUtKox8znpaNC000000=' } });
+    const c2 = new ControllerSession({ cookies: { 'lionrock-session': 'c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad.WnKoj6+mumOJJ5N3Gc5hHiVVyUtKox8znpaNC000000=' } });
     const r2 = await c2.execute('readfoo');
-    //    console.log(r2);
+//        console.log(r2);
     expect(r2.body).toBe(undefined);
 
-    const c3 = new ControllerSession({ cookies: { 'kohanajs-session': 'c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad.WnKoj6+mumOJJ5N3Gc5hHiVVyUtKox8znpaNC69ckUk=' } });
+    const c3 = new ControllerSession({ cookies: { 'lionrock-session': 'c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad.WnKoj6+mumOJJ5N3Gc5hHiVVyUtKox8znpaNC69ckUk=' } });
     const r3 = await c3.execute('readfoo');
     //    console.log(r3);
     expect(r3.body).toBe('whatsup');
@@ -172,7 +179,7 @@ describe('Test Session', () => {
 
   test('valid session signature, but session not in database', async () => {
     const data = Math.random();
-    const c1 = new ControllerSession({ cookies: { 'kohanajs-session': '5722ffcc-169a-4764-89f9-60045fe0d077.oZejsSIrAqd05PuxF/haV7aard2poAg8USR6+4TiYkQ=' }, body: data });
+    const c1 = new ControllerSession({ cookies: { 'lionrock-session': '5722ffcc-169a-4764-89f9-60045fe0d077.oZejsSIrAqd05PuxF/haV7aard2poAg8USR6+4TiYkQ=' }, body: data });
     const r1 = await c1.execute('setfoo');
     expect(r1.cookies.length).toBe(1);
   });

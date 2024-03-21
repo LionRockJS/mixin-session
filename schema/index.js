@@ -1,4 +1,4 @@
-const {build} = require('kohanajs-start');
+import {build} from '@lionrockjs/start';
 build(
   `${__dirname}/session.graphql`,
   ``,
