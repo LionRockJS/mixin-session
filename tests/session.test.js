@@ -26,7 +26,7 @@ class ControllerSession extends Controller {
 
   async action_readfoo() {
     const request = this.state.get(Controller.STATE_REQUEST);
-    this.body = request.session.foo;
+    this.state.set(Controller.STATE_BODY, request.session.foo);
   }
 }
 

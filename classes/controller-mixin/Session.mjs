@@ -32,10 +32,10 @@ export default class ControllerMixinSession extends ControllerMixin {
 
   static async after(state) {
     const config = { ...Central.config.session, ...state.get(this.SESSION_OPTIONS) };
-    const client = state.get(Controller.STATE_CLIENT);
     const request  = state.get(Controller.STATE_REQUEST);
     const { session } = request;
-    const { cookies } = client;
+    const cookies = state.get(Controller.STATE_COOKIES);
+
     if(!session)return;
 
     const save = config.resave || (!session.id && config.saveUninitialized) || !equal(state.get(this.OLD_SESSION), session);
@@ -45,8 +45,7 @@ export default class ControllerMixinSession extends ControllerMixin {
   }
 
   static async exit(state) {
-    const code = state.get('client').status;
     // still try to save session if exit code is 302
-    if (code === 302) await this.after(state);
+    if (state.get(Controller.STATE_STATUS) === 302) await this.after(state);
   }
 }
