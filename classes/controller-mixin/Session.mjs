@@ -1,7 +1,7 @@
 import { ControllerMixin, Controller } from '@lionrockjs/mvc';
 import { Central } from '@lionrockjs/central';
 import equal from 'fast-deep-equal';
-import Session from '../Session';
+import Session from '../Session.mjs';
 
 export default class ControllerMixinSession extends ControllerMixin {
   static SESSION_DATABASE = 'session_database';
