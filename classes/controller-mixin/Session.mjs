@@ -1,5 +1,5 @@
 import { ControllerMixin, Controller } from '@lionrockjs/mvc';
-import { Central } from '@lionrockjs/central';
+import { Central, ControllerMixinDatabase } from '@lionrockjs/central';
 import equal from 'fast-deep-equal';
 import Session from '../Session.mjs';
 
@@ -16,7 +16,7 @@ export default class ControllerMixinSession extends ControllerMixin {
   }
 
   static async setup(state) {
-    const databases = state.get('databases');
+    const databases = state.get(ControllerMixinDatabase.DATABASES);
     if (databases) {
       state.set(this.SESSION_DATABASE, databases.get(state.get(this.SESSION_DATABASE_KEY)));
       if (!state.get(this.SESSION_DATABASE)) throw new Error('ControllerMixinSession require database');

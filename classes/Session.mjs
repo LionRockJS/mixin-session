@@ -29,7 +29,7 @@ export default class HelperSession {
 
     // sid not in database, create new session.
     if (!model?.id) {
-      HelperSession.create(request);
+      request.session = { id:null, sid};
       return;
     }
 
@@ -48,24 +48,29 @@ export default class HelperSession {
 
     const cookieConfig = Central.config.cookie;
     const { secret } = config;
-    const model = new Session(request.session.id, { database });
+    const model = request.session.id ?
+      await ORM.factory(Session, request.session.id, {database}):
+      ORM.create(Session, { database });
 
     const data = { ...request.session };
     model.sid = data.sid;
     delete data.sid;
     delete data.id;
 
-    model.expired = Date.now() + (cookieConfig.maxAge ?? 43200000);
+    model.expired = Date.now() + (cookieConfig.options.maxAge ?? 43200000);
     model.sess = JSON.stringify(data);
     await model.write();
 
     const sign = await HelperCrypto.sign(secret, model.sid);
     const cookieName = `${model.sid}.${sign}`;
 
+    //if session cookie is same, no need to set cookie
+    if(request.cookies[config.name] === cookieName)return;
+
     cookies.push({
       name: config.name,
       value: cookieName,
-      options: cookieConfig,
+      options: cookieConfig.options,
     });
   }
 }
