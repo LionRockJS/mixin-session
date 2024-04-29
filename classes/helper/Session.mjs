@@ -2,7 +2,7 @@ import { Central, ORM } from '@lionrockjs/central';
 import { randomUUID } from 'node:crypto';
 import { HelperCrypto } from '@lionrockjs/mod-crypto';
 
-import DefaultSession from './model/Session.mjs';
+import DefaultSession from '../model/Session.mjs';
 const Session = await ORM.import('Session', DefaultSession);
 
 export default class HelperSession {
@@ -11,7 +11,7 @@ export default class HelperSession {
 
     const signedSessionID = request.cookies[config.name];
     if (!signedSessionID) {
-      HelperSession.create(request);
+      this.create(request);
       return;
     }
 
@@ -21,7 +21,7 @@ export default class HelperSession {
     const verify = await HelperCrypto.verify(config.secret, sign, sid);
 
     if (!verify) {
-      HelperSession.create(request);
+      this.create(request);
       return;
     }
 
@@ -65,7 +65,8 @@ export default class HelperSession {
     const cookieName = `${model.sid}.${sign}`;
 
     //if session cookie is same, no need to set cookie
-    if(request.cookies[config.name] === cookieName)return;
+    if(!!request.session.id && config.resave !== true && request.cookies[config.name] === cookieName)return;
+    if(!request.session.id)request.session.id = model.id;
 
     cookies.push({
       name: config.name,

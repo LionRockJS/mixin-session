@@ -5,7 +5,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { Central, ControllerMixinDatabase } from '@lionrockjs/central';
 import { DatabaseAdapterBetterSQLite3 } from '@lionrockjs/adapter-database-better-sqlite3';
-ControllerMixinDatabase.DEFAULT_DATABASE_ADAPTER = DatabaseAdapterBetterSQLite3;
+ControllerMixinDatabase.defaultAdapter = DatabaseAdapterBetterSQLite3;
 import { Controller } from '@lionrockjs/mvc';
 import ControllerMixinSession from '../classes/controller-mixin/Session';
 import Database from "better-sqlite3";
@@ -46,7 +46,7 @@ describe('Test Session', () => {
 
   beforeEach(async () => {
     await Central.init({ EXE_PATH: `${__dirname}/test1` });
-    Central.initConfig(new Map([
+    await Central.initConfig(new Map([
       ['cookie', (await import('../config/cookie.mjs')).default],
       ['session', (await import('../config/session.mjs')).default],
     ]));
@@ -87,6 +87,11 @@ describe('Test Session', () => {
     const r2 = await c2.execute('setfoo');
     expect(r2.body).toBe('');
 
+    const db = new Database(`${__dirname}/db/session.sqlite`);
+    const sid = ssid.split('.')[0];
+    const row = db.prepare('SELECT * FROM sessions WHERE sid = ?').get(sid);
+    expect(row.sess).toBe('{"foo":"'+data+'"}');
+
     const c3 = new ControllerSession({ cookies: { 'lionrock-session': ssid } });
     const r3 = await c3.execute('readfoo');
 
@@ -104,29 +109,29 @@ describe('Test Session', () => {
 
     const c2 = new ControllerSession({ cookies: {} });
     const result2 = await c2.execute();
-    console.log(result2);
+    expect(Central.config.session.saveUninitialized).toBe(true);
     const cookie = result2.cookies.find(({ name }) => name === 'lionrock-session');
     expect(!!cookie).toBe(true);
   });
 
   test('config session name', async () => {
-    Object.assign(Central.config.session, {
-      name: 'ksession',
-      saveUninitialized: true,
-    });
+    Central.config.session.name = 'ksession';
+    Central.config.session.saveUninitialized = true;
+    expect(Central.config.session.name).toBe('ksession');
+    expect(Central.config.session.saveUninitialized).toBe(true);
+    const config = Central.config.session;
 
     const c = new ControllerSession({ cookies: {} });
     const result = await c.execute();
-    console.log(result);
-
+    expect(config === Central.config.session).toBe(true);
+    expect(Central.config.session.name).toBe('ksession');
+    expect(Central.config.session.saveUninitialized).toBe(true);
     const cookie = result.cookies.find(({ name }) => name === 'ksession');
     expect(!!cookie).toBe(true);
   });
 
   test('config session resave', async () => {
-    Object.assign(Central.config.session, {
-      resave: false,
-    });
+    Central.config.session.resave = false;
 
     const c = new ControllerSession({ cookies: {}, body: 'hello' });
     const result = await c.execute('setfoo');
@@ -144,12 +149,11 @@ describe('Test Session', () => {
     const record2 = c.state.get(ControllerMixinDatabase.DATABASES).get('session').prepare('SELECT * FROM sessions where sid = ?').get(sid);
     expect(record2.expired).toBe(lastUpdate);
 
-    Object.assign(Central.config.session, {
-      resave: true,
-    });
-
+    Central.config.session.resave = true;
     const c3 = new ControllerSession({ cookies: { 'lionrock-session': ssid }, body: 'hello' });
+    expect(Central.config.session.resave).toBe(true);
     const r3 = await c3.execute();
+    expect(Central.config.session.resave).toBe(true);
 
     expect(r3.cookies.length).toBe(1);
 
@@ -181,6 +185,7 @@ describe('Test Session', () => {
     const data = Math.random();
     const c1 = new ControllerSession({ cookies: { 'lionrock-session': '5722ffcc-169a-4764-89f9-60045fe0d077.oZejsSIrAqd05PuxF/haV7aard2poAg8USR6+4TiYkQ=' }, body: data });
     const r1 = await c1.execute('setfoo');
+    expect(!!c1.state.get(Controller.STATE_REQUEST).session.id).toBe(true);
     expect(r1.cookies.length).toBe(1);
   });
 

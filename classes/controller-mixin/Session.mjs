@@ -1,7 +1,7 @@
 import { ControllerMixin, Controller } from '@lionrockjs/mvc';
 import { Central, ControllerMixinDatabase } from '@lionrockjs/central';
 import equal from 'fast-deep-equal';
-import Session from '../Session.mjs';
+import HelperSession from '../helper/Session.mjs';
 
 export default class ControllerMixinSession extends ControllerMixin {
   static SESSION_DATABASE = 'session_database';
@@ -26,7 +26,7 @@ export default class ControllerMixinSession extends ControllerMixin {
   static async before(state) {
     const request = state.get(Controller.STATE_REQUEST);
     if (request.session) return;// session already created
-    await Session.read(request, state.get(this.SESSION_DATABASE), state.get(this.SESSION_OPTIONS));
+    await HelperSession.read(request, state.get(this.SESSION_DATABASE), state.get(this.SESSION_OPTIONS));
     state.set(this.OLD_SESSION, { ...request.session });
   }
 
@@ -35,13 +35,12 @@ export default class ControllerMixinSession extends ControllerMixin {
     const request  = state.get(Controller.STATE_REQUEST);
     const { session } = request;
     const cookies = state.get(Controller.STATE_COOKIES);
-
     if(!session)return;
 
     const save = config.resave || (!session.id && config.saveUninitialized) || !equal(state.get(this.OLD_SESSION), session);
 
     if (!save) return;
-    await Session.write(request, cookies, state.get(this.SESSION_DATABASE), state.get(this.SESSION_OPTIONS));
+    await HelperSession.write(request, cookies, state.get(this.SESSION_DATABASE), state.get(this.SESSION_OPTIONS));
   }
 
   static async exit(state) {
