@@ -1,6 +1,5 @@
-import { Central, ORM } from '@lionrockjs/central';
+import { Central, ORM, HelperCrypto } from '@lionrockjs/central';
 import { randomUUID } from 'node:crypto';
-import { HelperCrypto } from '@lionrockjs/mod-crypto';
 
 import DefaultSession from '../model/Session.mjs';
 const Session = await ORM.import('Session', DefaultSession);
