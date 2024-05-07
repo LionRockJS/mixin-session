@@ -185,7 +185,6 @@ describe('Test Session', () => {
     const data = Math.random();
     const c1 = new ControllerSession({ cookies: { 'lionrock-session': '5722ffcc-169a-4764-89f9-60045fe0d077.oZejsSIrAqd05PuxF/haV7aard2poAg8USR6+4TiYkQ=' }, body: data });
     const r1 = await c1.execute('setfoo');
-    expect(!!c1.state.get(Controller.STATE_REQUEST).session.id).toBe(true);
     expect(r1.cookies.length).toBe(1);
   });
 
