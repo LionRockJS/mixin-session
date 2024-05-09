@@ -1,6 +1,6 @@
-import { ORM } from '@lionrockjs/central';
+import { Model } from '@lionrockjs/central';
 
-export default class Session extends ORM {
+export default class Session extends Model {
   sid = null;
 
   expired = 0;
