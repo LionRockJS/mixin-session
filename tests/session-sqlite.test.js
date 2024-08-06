@@ -16,7 +16,6 @@ class ControllerSession extends Controller {
   constructor(request, sessionOption) {
     super(request);
     this.state.get(ControllerMixinDatabase.DATABASE_MAP).set('session', `${__dirname}/test2/database/session.sqlite`);
-    this.state.set(ControllerMixinSession.SESSION_OPTIONS, sessionOption);
   }
 
   async action_setfoo() {

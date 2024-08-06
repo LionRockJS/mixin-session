@@ -13,9 +13,7 @@ export default class ControllerMixinSession extends ControllerMixin {
     if (!request.cookies) throw new Error('Session require cookies enabled');
 
     state.set(this.HELPER_SESSION, new HelperSession());
-  }
-
-  static async setup(state) {
+    state.set(this.SESSION_OPTIONS, { state });
   }
 
   static async before(state) {

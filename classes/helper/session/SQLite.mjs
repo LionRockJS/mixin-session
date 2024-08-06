@@ -1,6 +1,6 @@
 import {AbstractHelperSession} from "../Session.mjs";
 
-import { Central, ORM, HelperCrypto } from '@lionrockjs/central';
+import {Central, ORM, HelperCrypto, ControllerMixinDatabase} from '@lionrockjs/central';
 import { randomUUID } from 'node:crypto';
 
 import DefaultSession from '../../model/Session.mjs';
@@ -8,7 +8,7 @@ const Session = await ORM.import('Session', DefaultSession);
 
 export default class HelperSessionSQLite extends AbstractHelperSession{
   static async read(request, options) {
-    const database = options.database;
+    const database = options.state.get(ControllerMixinDatabase.DATABASES).get('session');
     const config = { ...Central.config.session, ...options };
 
     const signedSessionID = request.cookies[config.name];
@@ -46,7 +46,7 @@ export default class HelperSessionSQLite extends AbstractHelperSession{
   }
 
   static async write(request, cookies, options) {
-    const database = options.database;
+    const database = options.state.get(ControllerMixinDatabase.DATABASES).get('session');
     const config = { ...Central.config.session, ...options };
 
     const cookieConfig = Central.config.cookie;
