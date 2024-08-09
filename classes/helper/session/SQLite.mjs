@@ -1,7 +1,6 @@
 import {AbstractHelperSession} from "../Session.mjs";
 
 import {Central, ORM, HelperCrypto, ControllerMixinDatabase} from '@lionrockjs/central';
-import { randomUUID } from 'node:crypto';
 
 import DefaultSession from '../../model/Session.mjs';
 const Session = await ORM.import('Session', DefaultSession);
@@ -19,7 +18,7 @@ export default class HelperSessionSQLite extends AbstractHelperSession{
     const verify = await HelperCrypto.verify(config.secret, sign, sid);
 
     if (!verify) {
-      return this.create(request);
+      return this.create();
     }
 
     const model = await ORM.readBy(Session, 'sid', [sid], { database });
