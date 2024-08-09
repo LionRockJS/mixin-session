@@ -6,7 +6,6 @@ import {AbstractHelperSession} from "../Session.mjs";
 
 export default class HelperSessionJWT extends AbstractHelperSession{
   static async read(request, options) {
-
     const config = { ...Central.config.session, ...options };
     if(!request.cookies[config.name])return this.create();
 
@@ -15,13 +14,6 @@ export default class HelperSessionJWT extends AbstractHelperSession{
     }catch(e){
       return this.create();
     }
-  }
-
-  static create() {
-    return {
-      id: null,
-      sid: randomUUID(),
-    };
   }
 
   static async write(request, cookies, options) {

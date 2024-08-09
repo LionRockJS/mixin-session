@@ -27,7 +27,6 @@ export default class ControllerMixinSession extends ControllerMixin {
     const config = { ...Central.config.session, ...state.get(this.SESSION_OPTIONS) };
     const request  = state.get(Controller.STATE_REQUEST);
     const cookies = state.get(Controller.STATE_COOKIES);
-
     if(!request.session)return;
 
     const save = config.resave || (!request.session.id && config.saveUninitialized) || !equal(state.get(this.OLD_SESSION), request.session);

@@ -15,6 +15,7 @@ class ControllerSession extends Controller {
 
   constructor(request, sessionOption) {
     super(request);
+    Object.assign(this.state.get(ControllerMixinSession.SESSION_OPTIONS), sessionOption);
     this.state.get(ControllerMixinDatabase.DATABASE_MAP).set('session', `${__dirname}/test2/database/session.sqlite`);
   }
 
@@ -60,11 +61,19 @@ describe('Test Session', () => {
     expect(result.cookies.length).toBe(0);
   });
 
+  test('session created', async () => {
+    const c = new ControllerSession({ cookies: {} }, { saveUninitialized: true });
+    const result = await c.execute();
+    const request = c.state.get(Controller.STATE_REQUEST);
+    expect(typeof request.session).toBe('object');
+  });
+
   test('save uninitialized', async () => {
     const c = new ControllerSession({ cookies: {} }, { saveUninitialized: true });
     const result = await c.execute();
 
     const cookie = result.cookies.find(({ name }) => name === 'lionrock-session');
+    console.log(result.cookies);
     expect(!!cookie).toBe(true);
 
     const ssid = cookie.value;
@@ -86,7 +95,7 @@ describe('Test Session', () => {
     const r2 = await c2.execute('setfoo');
     expect(r2.body).toBe('');
 
-    const db = new Database(`${__dirname}/db/session.sqlite`);
+    const db = new Database(`${__dirname}/test2/database/session.sqlite`);
     const sid = ssid.split('.')[0];
     const row = db.prepare('SELECT * FROM sessions WHERE sid = ?').get(sid);
     expect(row.sess).toBe('{"foo":"'+data+'"}');
@@ -161,7 +170,7 @@ describe('Test Session', () => {
   });
 
   test('invalid session sign', async () => {
-    const db = new Database(`${__dirname}/db/session.sqlite`);
+    const db = new Database(`${__dirname}/test2/database/session.sqlite`);
     db.prepare('INSERT INTO sessions (sid, sess, expired) VALUES (?,?,?)').run('c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad', '{"foo":"whatsup"}', 1597158162434);
 
     const c1 = new ControllerSession({ cookies: { 'lionrock-session': 'c8b76616-2f4e-4d3a-ab74-c2edd5ee19ad.WnKoj6+mumOJJ5N3Gc5hHiVVyUtKox8znpaNC69ckUk=' } });

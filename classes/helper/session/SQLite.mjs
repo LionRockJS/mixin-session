@@ -8,46 +8,34 @@ const Session = await ORM.import('Session', DefaultSession);
 
 export default class HelperSessionSQLite extends AbstractHelperSession{
   static async read(request, options) {
-    const database = options.state.get(ControllerMixinDatabase.DATABASES).get('session');
     const config = { ...Central.config.session, ...options };
+    if(!request.cookies[config.name])return this.create();
 
+    const database = options.state.get(ControllerMixinDatabase.DATABASES).get('session');
     const signedSessionID = request.cookies[config.name];
-    if (!signedSessionID) {
-      this.create(request);
-      return;
-    }
-
     const seg = signedSessionID.split('.');
     const sid = seg[0];
     const sign = seg[1];
     const verify = await HelperCrypto.verify(config.secret, sign, sid);
 
     if (!verify) {
-      this.create(request);
-      return;
+      return this.create(request);
     }
 
     const model = await ORM.readBy(Session, 'sid', [sid], { database });
 
     // sid not in database, create new session.
     if (!model?.id) {
-      request.session = { id:null, sid};
-      return;
+      return { id:null, sid};
     }
 
-    request.session = { id: model.id, sid: model.sid, ...JSON.parse(model.sess) };
-  }
-
-  static create(request) {
-    request.session = {
-      id: null,
-      sid: randomUUID(),
-    };
+    return { id: model.id, sid: model.sid, ...JSON.parse(model.sess) };
   }
 
   static async write(request, cookies, options) {
-    const database = options.state.get(ControllerMixinDatabase.DATABASES).get('session');
     const config = { ...Central.config.session, ...options };
+
+    const database = options.state.get(ControllerMixinDatabase.DATABASES).get('session');
 
     const cookieConfig = Central.config.cookie;
     const { secret } = config;
@@ -68,7 +56,6 @@ export default class HelperSessionSQLite extends AbstractHelperSession{
     const cookieName = `${model.sid}.${sign}`;
 
     //if session cookie is same, no need to set cookie
-    if(!!request.session.id && config.resave !== true && request.cookies[config.name] === cookieName)return;
     if(!request.session.id)request.session.id = model.id;
 
     cookies.push({
