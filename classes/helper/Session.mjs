@@ -1,6 +1,6 @@
 import {randomUUID} from "node:crypto";
 
-export class AbstractHelperSession{
+export class AbstractHelperSessionAdapter{
   static async read(request, options) {
     console.log('AbstractHelperSession.read', request, options);
   }
@@ -18,7 +18,7 @@ export class AbstractHelperSession{
 }
 
 export default class HelperSession {
-  static defaultAdapter = AbstractHelperSession;
+  static defaultAdapter = AbstractHelperSessionAdapter;
 
   constructor(Adapter = null) {
     this.adapter = Adapter || HelperSession.defaultAdapter;
