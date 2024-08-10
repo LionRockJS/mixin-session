@@ -1,27 +1,6 @@
-import {randomUUID} from "node:crypto";
-
-export class AbstractHelperSessionAdapter{
-  static async read(request, options) {
-    console.log('AbstractHelperSession.read', request, options);
-  }
-
-  static async write(request, cookies, options) {
-    console.log('AbstractHelperSession.write', request, options);
-  }
-
-  static create(request) {
-    return {
-      id: null,
-      sid: randomUUID(),
-    };
-  }
-}
-
 export default class HelperSession {
-  static defaultAdapter = AbstractHelperSessionAdapter;
-
-  constructor(Adapter = null) {
-    this.adapter = Adapter || HelperSession.defaultAdapter;
+  constructor(adapter) {
+    this.adapter = adapter;
   }
 
   async read(request, options) {
