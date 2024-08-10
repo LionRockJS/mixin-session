@@ -1,6 +1,6 @@
 {
   "name": "@lionrockjs/mixin-session",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Session for LionRockJS",
   "main": "index.js",
   "type": "module",
@@ -35,5 +35,7 @@
   "bugs": {
     "url": "https://github.com/LionRockJS/mixin-session/issues"
   },
-  "homepage": "https://github.com/LionRockJS/mixin-session#readme"
+  "homepage": "https://github.com/LionRockJS/mixin-session#readme",
+  "dependencies": {
+  }
 }
