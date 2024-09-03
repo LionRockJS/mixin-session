@@ -1,8 +1,8 @@
 import { ControllerMixin, Controller } from '@lionrockjs/mvc';
 import { Central } from '@lionrockjs/central';
 import equal from 'fast-deep-equal';
-import HelperSession from '../helper/session.mjs';
-import AbstractAdapterSession from '../adapter/session.mjs';
+import HelperSession from '../helper/Session.mjs';
+import AbstractAdapterSession from '../adapter/Session.mjs';
 
 export default class ControllerMixinSession extends ControllerMixin {
   static SESSION_OPTIONS = 'session_options';
