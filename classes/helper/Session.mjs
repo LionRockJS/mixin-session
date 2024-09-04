@@ -3,11 +3,11 @@ export default class HelperSession {
     this.adapter = adapter;
   }
 
-  async read(request, options) {
-    return await this.adapter.read(request, options);
+  async read(cookies, options) {
+    return await this.adapter.read(cookies, options);
   }
 
-  async write(request, cookies, options) {
-    return await this.adapter.write(request, cookies, options);
+  async write(session, cookies, options) {
+    return await this.adapter.write(session, cookies, options);
   }
 }

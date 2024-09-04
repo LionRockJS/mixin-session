@@ -21,7 +21,7 @@ export default class ControllerMixinSession extends ControllerMixin {
   static async before(state) {
     const request = state.get(Controller.STATE_REQUEST);
     if (request.session) return;// session already created
-    request.session = await state.get(this.HELPER_SESSION).read(request, state.get(this.SESSION_OPTIONS));
+    request.session = await state.get(this.HELPER_SESSION).read(request.cookies, state.get(this.SESSION_OPTIONS));
     state.set(this.OLD_SESSION, { ...request.session });
   }
 
@@ -34,7 +34,7 @@ export default class ControllerMixinSession extends ControllerMixin {
     const save = config.resave || (!request.session.id && config.saveUninitialized) || !equal(state.get(this.OLD_SESSION), request.session);
 
     if (!save) return;
-    await state.get(this.HELPER_SESSION).write(request, cookies, state.get(this.SESSION_OPTIONS));
+    await state.get(this.HELPER_SESSION).write(request.session, cookies, state.get(this.SESSION_OPTIONS));
   }
 
   static async exit(state) {

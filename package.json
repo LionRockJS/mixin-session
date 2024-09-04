@@ -1,6 +1,6 @@
 {
   "name": "@lionrockjs/mixin-session",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Session for LionRockJS",
   "main": "index.js",
   "type": "module",
