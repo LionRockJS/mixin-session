@@ -25,6 +25,7 @@ export default class ControllerMixinSession extends ControllerMixin {
       request.session = await state.get(this.HELPER_SESSION).read(request.cookies, state.get(this.SESSION_OPTIONS));
     }catch(e){
       //browser may send multiple session cookies, try to find the right one
+      request.session = this.defaultAdapter.create(request);
       const cookieString = request.headers.cookie;
       const cookies = cookieString
         .split(';')
