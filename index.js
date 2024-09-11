@@ -4,8 +4,10 @@ export default {dirname}
 
 import ControllerMixinSession from './classes/controller-mixin/Session.mjs';
 import AbstractAdapterSession from './classes/adapter/Session.mjs';
+import HelperSession from './classes/helper/Session.mjs';
 
 export{
   ControllerMixinSession,
-  AbstractAdapterSession
+  AbstractAdapterSession,
+  HelperSession
 }
