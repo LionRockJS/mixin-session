@@ -1,6 +1,7 @@
-import url from "node:url";
-const dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
-export default {dirname}
+export default {
+  filename: import.meta.url,
+  configs: ['cookie', 'session']
+}
 
 import ControllerMixinSession from './classes/controller-mixin/Session.mjs';
 import AbstractAdapterSession from './classes/adapter/Session.mjs';
