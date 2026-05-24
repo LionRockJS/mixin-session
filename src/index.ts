@@ -10,7 +10,6 @@ export default {
     session: ConfigSession,
   }
 }
-}
 
 export {
   ControllerMixinSession,
